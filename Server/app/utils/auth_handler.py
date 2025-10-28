@@ -1,17 +1,40 @@
 import jwt
 from datetime import datetime, timedelta
-from fastapi import HTTPException, Depends, status, Request
+from fastapi import HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from passlib.context import CryptContext
 from dotenv import load_dotenv
 import os
 
+# Load environment variables
 load_dotenv()
 SECRET_KEY = os.getenv("JWT_SECRET", "your-fallback-secret-key-change-in-production")
 ALGORITHM = "HS256"
 
-# Create HTTPBearer for token extraction
+# Initialize password hashing context
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# HTTPBearer for token extraction
 security = HTTPBearer()
 
+# -------------------------------
+# PASSWORD HASHING FUNCTIONS
+# -------------------------------
+def hash_password(password: str) -> str:
+    """
+    Hash a plaintext password using bcrypt.
+    """
+    return pwd_context.hash(password)
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """
+    Verify that a plaintext password matches the hashed password.
+    """
+    return pwd_context.verify(plain_password, hashed_password)
+
+# -------------------------------
+# JWT TOKEN FUNCTIONS
+# -------------------------------
 def create_access_token(data: dict, expires_delta: int = 60):
     """
     Create a JWT access token
@@ -63,7 +86,9 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
         )
     return payload
 
-# Alternative verification function that can work with just a token string
+# -------------------------------
+# EXTRA VERIFICATION HELPERS
+# -------------------------------
 def verify_token_string(token: str):
     """
     Verify a JWT token from string (without HTTPBearer dependency)

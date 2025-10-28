@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes.auth import auth_router
 from app.routes.books import book_router  # Add this import
+from app.routes.admins import admins_router
 from app.config.database import db
 import uvicorn
 import os
@@ -24,6 +25,7 @@ app.add_middleware(
 # ✅ Register routes
 app.include_router(auth_router)
 app.include_router(book_router)  # Add this line
+app.include_router(admins_router)
 
 @app.get("/ping-db")
 async def ping_db():
