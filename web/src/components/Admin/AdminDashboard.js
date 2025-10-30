@@ -419,9 +419,9 @@ const AdminDashboard = ({ setPage }) => {
     doc.text('TECHNOLOGICAL UNIVERSITY OF THE PHILIPPINES', 55, 20);
     doc.setFontSize(12);
     doc.setFont(undefined, 'normal');
-    doc.text('Office of the Library Services', 55, 28);
-    doc.text('Ayala Blvd, Ermita, Manila, 1000 Metro Manila', 55, 35);
-    doc.text('Tel: (02) 8521-4063 | Email: library@tup.edu.ph', 55, 42);
+    doc.text('Office of the BSIT LIBRARY THESIS Services', 55, 28);
+    doc.text('14 East Service Road, South Super Highway, Taguig, Metro Manila', 55, 35);
+    doc.text('Tel: (02) 8521-4063 | Email: library@tupT.edu.ph', 55, 42);
     
     // Report title
     doc.setFontSize(18);
@@ -568,7 +568,7 @@ const AdminDashboard = ({ setPage }) => {
       doc.setPage(i);
       doc.setFontSize(8);
       doc.text(`Page ${i} of ${pageCount}`, 105, 290, { align: 'center' });
-      doc.text('Confidential - TUP Library Management System', 105, 295, { align: 'center' });
+      doc.text('Confidential - TUPT BSIT THESIS Library Management System', 105, 295, { align: 'center' });
     }
     
     doc.save(`TUP_LIBRARY_${getReportTypeTitle(reportType).replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
