@@ -624,8 +624,8 @@ const AdminDashboard = ({ setPage }) => {
         analysis.push(
           `• Financial Overview: Total fines generated: $${totalFines.toFixed(2)}`,
           `• Collection Performance: ${reportData.find(item => item.metric === 'Collection Rate')?.amount || '0%'} collection rate achieved.`,
-          `• Revenue Analysis: ${reportData.find(item => item.metric === 'Collected Fines')?.amount || '$0.00'} successfully collected.`,
-          `• Outstanding Amount: ${reportData.find(item => item.metric === 'Pending Fines')?.amount || '$0.00'} pending collection.`,
+          `• Revenue Analysis: ${reportData.find(item => item.metric === 'Collected Fines')?.amount || '₱0.00'} successfully collected.`,
+          `• Outstanding Amount: ${reportData.find(item => item.metric === 'Pending Fines')?.amount || '₱0.00'} pending collection.`,
           `• Recommendation: ${totalFines > 100 ? 'Review fine collection procedures for improvement.' : 'Financial management is effective.'}`
         );
         break;
@@ -1695,7 +1695,7 @@ const AdminDashboard = ({ setPage }) => {
                       <td>{record.borrow_date ? new Date(record.borrow_date).toLocaleDateString() : '-'}</td>
                       <td>{record.due_date ? new Date(record.due_date).toLocaleDateString() : '-'}</td>
                       <td>{record.return_date ? new Date(record.return_date).toLocaleDateString() : '-'}</td>
-                      <td className="fine-amount">${record.fine_amount || '0.00'}</td>
+                      <td className="fine-amount">₱{record.fine_amount || '0.00'}</td>
                     </tr>
                   ))}
                 </tbody>
