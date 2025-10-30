@@ -5,6 +5,7 @@ import logo from "../assets/Logo.png";
 const HomeDashboard = ({ setPage }) => {
   const [activeSection, setActiveSection] = useState("home");
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,10 +32,15 @@ const HomeDashboard = ({ setPage }) => {
 
   const scrollToSection = (sectionId) => {
     setActiveSection(sectionId);
+    setIsMobileMenuOpen(false); // Close mobile menu after clicking
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
     }
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   return (
@@ -59,7 +65,20 @@ const HomeDashboard = ({ setPage }) => {
                 IT Thesis Library
               </h1>
             </div>
-            <div className="nav-menu">
+            
+            {/* Mobile Menu Button */}
+            <button 
+              className="mobile-menu-button"
+              onClick={toggleMobileMenu}
+              aria-label="Toggle menu"
+            >
+              <span className={`menu-bar ${isMobileMenuOpen ? 'bar-1-open' : ''}`}></span>
+              <span className={`menu-bar ${isMobileMenuOpen ? 'bar-2-open' : ''}`}></span>
+              <span className={`menu-bar ${isMobileMenuOpen ? 'bar-3-open' : ''}`}></span>
+            </button>
+
+            {/* Desktop Navigation */}
+            <div className={`nav-menu ${isMobileMenuOpen ? 'nav-menu-open' : ''}`}>
               <button
                 onClick={() => scrollToSection("home")}
                 className={`nav-button ${activeSection === "home" ? "active" : ""}`}
@@ -91,6 +110,14 @@ const HomeDashboard = ({ setPage }) => {
                 Admin Login
               </button>
             </div>
+
+            {/* Mobile Menu Overlay */}
+            {isMobileMenuOpen && (
+              <div 
+                className="mobile-menu-overlay"
+                onClick={() => setIsMobileMenuOpen(false)}
+              ></div>
+            )}
           </div>
         </div>
       </nav>
@@ -99,6 +126,14 @@ const HomeDashboard = ({ setPage }) => {
       <section id="home" className="hero-section">
         <div className="hero-content">
           <div className="hero-text-center">
+            <br></br>
+            <br></br>
+            <br></br>
+            <br></br>
+            <br></br>
+            <br></br>
+                     
+
             <h2 className="hero-title">
               Welcome to the
               <span className="hero-title-gradient">

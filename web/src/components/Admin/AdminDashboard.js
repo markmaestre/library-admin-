@@ -74,6 +74,9 @@ const AdminDashboard = ({ setPage }) => {
   const [reportData, setReportData] = useState([]);
   const [generatingReport, setGeneratingReport] = useState(false);
 
+  // Mobile sidebar state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
   useEffect(() => {
@@ -917,6 +920,19 @@ const AdminDashboard = ({ setPage }) => {
       .slice(0, 10);
   };
 
+  // Toggle sidebar for mobile
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  // Close sidebar when changing view on mobile
+  const handleViewChange = (view) => {
+    setCurrentView(view);
+    if (window.innerWidth <= 768) {
+      setIsSidebarOpen(false);
+    }
+  };
+
   if (loading) return <div className="loading">Loading dashboard...</div>;
 
   if (error) {
@@ -932,7 +948,25 @@ const AdminDashboard = ({ setPage }) => {
 
   return (
     <div className="admin-dashboard">
-      <div className="admin-sidebar">
+      {/* Mobile Header with Burger Menu */}
+      <div className="mobile-header">
+        <button className="burger-menu" onClick={toggleSidebar}>
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div className="mobile-admin-info">
+          <div className="admin-avatar">{adminName?.charAt(0).toUpperCase()}</div>
+          <span className="admin-name">{adminName}</span>
+        </div>
+      </div>
+
+      {/* Overlay for mobile when sidebar is open */}
+      {isSidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>
+      )}
+
+      <div className={`admin-sidebar ${isSidebarOpen ? 'sidebar-open' : ''}`}>
         <div className="sidebar-header">
           <h2>Admin Control Panel</h2>
           <div className="admin-info">
@@ -946,25 +980,25 @@ const AdminDashboard = ({ setPage }) => {
         <nav className="sidebar-nav">
           <button 
             className={`nav-item ${currentView === "dashboard" ? "active" : ""}`}
-            onClick={() => setCurrentView("dashboard")}
+            onClick={() => handleViewChange("dashboard")}
           >
             <span className="nav-label">Dashboard</span>
           </button>
           <button 
             className={`nav-item ${currentView === "users" ? "active" : ""}`}
-            onClick={() => setCurrentView("users")}
+            onClick={() => handleViewChange("users")}
           >
             <span className="nav-label">User Management</span>
           </button>
           <button 
             className={`nav-item ${currentView === "books" ? "active" : ""}`}
-            onClick={() => setCurrentView("books")}
+            onClick={() => handleViewChange("books")}
           >
             <span className="nav-label">Book Management</span>
           </button>
           <button 
             className={`nav-item ${currentView === "borrow-requests" ? "active" : ""}`}
-            onClick={() => setCurrentView("borrow-requests")}
+            onClick={() => handleViewChange("borrow-requests")}
           >
             <span className="nav-label">Borrow Requests</span>
             {stats.pendingRequests > 0 && (
@@ -973,13 +1007,13 @@ const AdminDashboard = ({ setPage }) => {
           </button>
           <button 
             className={`nav-item ${currentView === "all-borrows" ? "active" : ""}`}
-            onClick={() => setCurrentView("all-borrows")}
+            onClick={() => handleViewChange("all-borrows")}
           >
             <span className="nav-label">All Borrow Records</span>
           </button>
           <button 
             className={`nav-item ${currentView === "notifications" ? "active" : ""}`}
-            onClick={() => setCurrentView("notifications")}
+            onClick={() => handleViewChange("notifications")}
           >
             <span className="nav-label">Notifications</span>
             {notifications.filter(n => !n.is_read).length > 0 && (
@@ -988,7 +1022,7 @@ const AdminDashboard = ({ setPage }) => {
           </button>
           <button 
             className={`nav-item ${currentView === "reports" ? "active" : ""}`}
-            onClick={() => setCurrentView("reports")}
+            onClick={() => handleViewChange("reports")}
           >
             <span className="nav-label">Reports & Analytics</span>
           </button>
@@ -1176,6 +1210,7 @@ const AdminDashboard = ({ setPage }) => {
           </div>
         )}
 
+        {/* Other views remain the same */}
         {currentView === "users" && (
           <div className="users-view">
             <div className="page-header">
@@ -1220,64 +1255,66 @@ const AdminDashboard = ({ setPage }) => {
             </div>
 
             <div className="data-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Joined Date</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredUsers.map(user => (
-                    <tr key={user.id}>
-                      <td>
-                        <div className="user-cell">
-                          <div className="user-avatar">{user.name?.charAt(0).toUpperCase()}</div>
-                          <span>{user.name}</span>
-                        </div>
-                      </td>
-                      <td>{user.email}</td>
-                      <td>
-                        <span className={`role-badge role-${user.role}`}>
-                          {user.role}
-                        </span>
-                      </td>
-                      <td>
-                        <span className={`status-badge status-${user.is_banned ? 'banned' : 'active'}`}>
-                          {user.is_banned ? 'Banned' : 'Active'}
-                        </span>
-                      </td>
-                      <td>{new Date(user.created_at).toLocaleDateString()}</td>
-                      <td className="actions-cell">
-                        {user.role !== 'admin' && (
-                          user.is_banned ? (
-                            <button 
-                              className="btn btn-success"
-                              onClick={() => unbanUser(user.id)}
-                            >
-                              Unban
-                            </button>
-                          ) : (
-                            <button 
-                              className="btn btn-danger"
-                              onClick={() => {
-                                setSelectedUserId(user.id);
-                                setBanReason("");
-                              }}
-                            >
-                              Ban User
-                            </button>
-                          )
-                        )}
-                      </td>
+              <div className="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Status</th>
+                      <th>Joined Date</th>
+                      <th>Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {filteredUsers.map(user => (
+                      <tr key={user.id}>
+                        <td>
+                          <div className="user-cell">
+                            <div className="user-avatar">{user.name?.charAt(0).toUpperCase()}</div>
+                            <span>{user.name}</span>
+                          </div>
+                        </td>
+                        <td>{user.email}</td>
+                        <td>
+                          <span className={`role-badge role-${user.role}`}>
+                            {user.role}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`status-badge status-${user.is_banned ? 'banned' : 'active'}`}>
+                            {user.is_banned ? 'Banned' : 'Active'}
+                          </span>
+                        </td>
+                        <td>{new Date(user.created_at).toLocaleDateString()}</td>
+                        <td className="actions-cell">
+                          {user.role !== 'admin' && (
+                            user.is_banned ? (
+                              <button 
+                                className="btn btn-success"
+                                onClick={() => unbanUser(user.id)}
+                              >
+                                Unban
+                              </button>
+                            ) : (
+                              <button 
+                                className="btn btn-danger"
+                                onClick={() => {
+                                  setSelectedUserId(user.id);
+                                  setBanReason("");
+                                }}
+                              >
+                                Ban User
+                              </button>
+                            )
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
               {filteredUsers.length === 0 && (
                 <div className="no-data">No users found</div>
               )}
@@ -1322,6 +1359,7 @@ const AdminDashboard = ({ setPage }) => {
                 </div>
               </div>
             )}
+        
           </div>
         )}
 
