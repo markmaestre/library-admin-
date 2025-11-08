@@ -165,6 +165,53 @@ const AdminDashboard = ({ setPage }) => {
     }
   };
 
+  // Add this function to mark notification as read
+  const markAsRead = async (notificationId) => {
+    try {
+      await axios.put(
+        `${API_URL}/books/notifications/${notificationId}/read`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      // Update local state
+      setNotifications(notifications.map(notification => 
+        notification._id === notificationId 
+          ? { ...notification, is_read: true }
+          : notification
+      ));
+      
+      // Refresh the notifications count in the sidebar
+      fetchDashboardStats();
+    } catch (err) {
+      console.error("Error marking notification as read:", err);
+      alert("Error marking notification as read: " + err.response?.data?.detail || err.message);
+    }
+  };
+
+  // Add this function to mark all notifications as read
+  const markAllAsRead = async () => {
+    try {
+      await axios.put(
+        `${API_URL}/books/notifications/mark-all-read`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      // Update local state
+      setNotifications(notifications.map(notification => ({
+        ...notification,
+        is_read: true
+      })));
+      
+      // Refresh the notifications count in the sidebar
+      fetchDashboardStats();
+    } catch (err) {
+      console.error("Error marking all notifications as read:", err);
+      alert("Error marking all notifications as read: " + err.response?.data?.detail || err.message);
+    }
+  };
+
   const filteredUsers = users.filter(user => {
     const searchMatch = 
       user.name?.toLowerCase().includes(userSearch.toLowerCase()) ||
@@ -1749,7 +1796,20 @@ const AdminDashboard = ({ setPage }) => {
           <div className="notifications-view">
             <div className="page-header">
               <h1>System Notifications</h1>
-              <p className="page-subtitle">{filteredNotifications.length} total notifications</p>
+              <p className="page-subtitle">
+                {filteredNotifications.length} total notifications • 
+                {filteredNotifications.filter(n => !n.is_read).length} unread
+              </p>
+              <div className="notification-actions">
+                {filteredNotifications.filter(n => !n.is_read).length > 0 && (
+                  <button 
+                    className="btn btn-primary"
+                    onClick={markAllAsRead}
+                  >
+                    Mark All as Read
+                  </button>
+                )}
+              </div>
             </div>
             
             <div className="search-section">
@@ -1770,15 +1830,28 @@ const AdminDashboard = ({ setPage }) => {
                 <div key={notification._id} className={`notification-card ${notification.is_read ? 'read' : 'unread'}`}>
                   <div className="notification-header">
                     <h4>{notification.title}</h4>
-                    <span className="notification-date">
-                      {new Date(notification.created_at).toLocaleDateString()}
-                    </span>
+                    <div className="notification-actions">
+                      {!notification.is_read && (
+                        <button 
+                          className="btn btn-success btn-sm"
+                          onClick={() => markAsRead(notification._id)}
+                        >
+                          Mark as Read
+                        </button>
+                      )}
+                      <span className="notification-date">
+                        {new Date(notification.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
                   </div>
                   <p className="notification-message">{notification.message}</p>
                   <div className="notification-footer">
                     <span className={`notification-type type-${notification.type}`}>{notification.type}</span>
                     {!notification.is_read && (
                       <span className="unread-indicator">New</span>
+                    )}
+                    {notification.is_read && (
+                      <span className="read-indicator">Read</span>
                     )}
                   </div>
                 </div>

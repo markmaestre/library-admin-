@@ -1635,3 +1635,48 @@ textarea:focus-visible {
     border: 2px solid currentColor;
   }
 }
+
+/* Add these to your adminDashboard.css */
+
+.notification-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.read-indicator {
+  background-color: #28a745;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+}
+
+.unread-indicator {
+  background-color: #dc3545;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+}
+
+.notification-card .notification-header {
+  display: flex;
+  justify-content: between;
+  align-items: flex-start;
+}
+
+.notification-card .notification-header h4 {
+  flex: 1;
+  margin: 0;
+}
+
+.notification-card.read {
+  opacity: 0.8;
+  background-color: #f8f9fa;
+}
+
+.notification-card.unread {
+  background-color: #fff;
+  border-left: 4px solid #007bff;
+}
