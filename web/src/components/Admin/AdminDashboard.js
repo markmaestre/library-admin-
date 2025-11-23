@@ -60,6 +60,8 @@ const AdminDashboard = ({ setPage }) => {
     total_copies: 1,
     available_copies: 1,
     category: "",
+    publisher: "",
+    published_year: "",
     image: null
   });
   const [editingBook, setEditingBook] = useState(null);
@@ -231,7 +233,8 @@ const AdminDashboard = ({ setPage }) => {
       book.title?.toLowerCase().includes(bookSearch.toLowerCase()) ||
       book.author?.toLowerCase().includes(bookSearch.toLowerCase()) ||
       book.isbn?.toLowerCase().includes(bookSearch.toLowerCase()) ||
-      book.category?.toLowerCase().includes(bookSearch.toLowerCase());
+      book.category?.toLowerCase().includes(bookSearch.toLowerCase()) ||
+      book.publisher?.toLowerCase().includes(bookSearch.toLowerCase());
     
     const categoryMatch = !bookFilters.category || book.category === bookFilters.category;
     const availabilityMatch = !bookFilters.availability || 
@@ -370,6 +373,8 @@ const AdminDashboard = ({ setPage }) => {
       author: book.author,
       isbn: book.isbn,
       category: book.category,
+      publisher: book.publisher || 'N/A',
+      publishedYear: book.published_year || 'N/A',
       totalCopies: book.total_copies,
       availableCopies: book.available_copies,
       borrowedCopies: book.total_copies - book.available_copies,
@@ -645,7 +650,8 @@ const AdminDashboard = ({ setPage }) => {
           `• Collection Overview: ${reportData.length} unique titles with ${totalCopies} total copies.`,
           `• Availability Status: ${availableCopies} copies currently available (${((availableCopies/totalCopies)*100).toFixed(1)}% availability rate).`,
           `• Category Distribution: ${getUniqueCategories().length} different categories represented.`,
-          `• Utilization: ${totalCopies - availableCopies} copies currently in circulation.`,
+          `• Publication Details: Books from ${[...new Set(reportData.map(b => b.publisher).filter(Boolean))].length} different publishers.`,
+          `• Publication Range: ${Math.min(...reportData.map(b => b.publishedYear).filter(y => y !== 'N/A'))} - ${Math.max(...reportData.map(b => b.publishedYear).filter(y => y !== 'N/A'))}`,
           `• Recommendation: ${availableCopies/totalCopies < 0.3 ? 'Consider acquiring additional copies of popular titles.' : 'Collection availability is adequate.'}`
         );
         break;
@@ -724,11 +730,14 @@ const AdminDashboard = ({ setPage }) => {
       case "books":
         const totalCopies = reportData.reduce((sum, book) => sum + (book.totalCopies || 0), 0);
         const availableCopies = reportData.reduce((sum, book) => sum + (book.availableCopies || 0), 0);
+        const publishers = [...new Set(reportData.map(b => b.publisher).filter(Boolean))];
+        const years = reportData.map(b => b.publishedYear).filter(y => y !== 'N/A');
         stats.push(
           `✓ Total Titles: ${reportData.length}`,
           `✓ Total Copies: ${totalCopies}`,
           `✓ Available Now: ${availableCopies}`,
-          `✓ Categories: ${getUniqueCategories().length}`
+          `✓ Publishers: ${publishers.length}`,
+          `✓ Publication Years: ${years.length > 0 ? `${Math.min(...years)} - ${Math.max(...years)}` : 'N/A'}`
         );
         break;
         
@@ -758,7 +767,7 @@ const AdminDashboard = ({ setPage }) => {
   const getPDFHeaders = (type) => {
     const headers = {
       'users': ['Name', 'Email', 'Role', 'Status', 'Join Date'],
-      'books': ['Title', 'Author', 'ISBN', 'Category', 'Total', 'Available'],
+      'books': ['Title', 'Author', 'ISBN', 'Category', 'Publisher', 'Year', 'Total', 'Available'],
       'borrow-records': ['User', 'Book Title', 'Status', 'Req Date', 'Due Date', 'Fine'],
       'financial': ['Metric', 'Amount'],
       'system': ['Metric', 'Value']
@@ -830,6 +839,8 @@ const AdminDashboard = ({ setPage }) => {
         total_copies: 1,
         available_copies: 1,
         category: "",
+        publisher: "",
+        published_year: "",
         image: null
       });
       fetchDashboardStats();
@@ -955,6 +966,8 @@ const AdminDashboard = ({ setPage }) => {
           bookBorrowCount[bookId] = {
             title: record.book.title,
             author: record.book.author,
+            publisher: record.book.publisher,
+            published_year: record.book.published_year,
             count: 0
           };
         }
@@ -1222,7 +1235,8 @@ const AdminDashboard = ({ setPage }) => {
                       formatter={(value) => [`${value} borrows`, 'Count']}
                       labelFormatter={(label, payload) => {
                         if (payload && payload[0]) {
-                          return `${payload[0].payload.title} by ${payload[0].payload.author}`;
+                          const book = payload[0].payload;
+                          return `${book.title} by ${book.author}${book.publisher ? ` (${book.publisher}${book.published_year ? `, ${book.published_year}` : ''})` : ''}`;
                         }
                         return label;
                       }}
@@ -1257,7 +1271,6 @@ const AdminDashboard = ({ setPage }) => {
           </div>
         )}
 
-        {/* Other views remain the same */}
         {currentView === "users" && (
           <div className="users-view">
             <div className="page-header">
@@ -1406,7 +1419,6 @@ const AdminDashboard = ({ setPage }) => {
                 </div>
               </div>
             )}
-        
           </div>
         )}
 
@@ -1421,7 +1433,7 @@ const AdminDashboard = ({ setPage }) => {
               <div className="search-controls">
                 <input
                   type="text"
-                  placeholder="Search books by title, author, ISBN, or category..."
+                  placeholder="Search books by title, author, ISBN, category, or publisher..."
                   value={bookSearch}
                   onChange={(e) => setBookSearch(e.target.value)}
                   className="search-input"
@@ -1507,6 +1519,32 @@ const AdminDashboard = ({ setPage }) => {
                         : setNewBook({...newBook, category: e.target.value})
                       }
                       required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Publisher</label>
+                    <input
+                      type="text"
+                      placeholder="Enter publisher name"
+                      value={editingBook ? editingBook.publisher : newBook.publisher}
+                      onChange={(e) => editingBook
+                        ? setEditingBook({...editingBook, publisher: e.target.value})
+                        : setNewBook({...newBook, publisher: e.target.value})
+                      }
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Published Year</label>
+                    <input
+                      type="number"
+                      placeholder="Enter published year"
+                      min="1000"
+                      max={new Date().getFullYear() + 5}
+                      value={editingBook ? editingBook.published_year : newBook.published_year}
+                      onChange={(e) => editingBook
+                        ? setEditingBook({...editingBook, published_year: parseInt(e.target.value) || ""})
+                        : setNewBook({...newBook, published_year: parseInt(e.target.value) || ""})
+                      }
                     />
                   </div>
                 </div>
@@ -1601,6 +1639,12 @@ const AdminDashboard = ({ setPage }) => {
                       <div className="book-meta">
                         <span className="meta-item">ISBN: {book.isbn}</span>
                         <span className="meta-item">Category: {book.category}</span>
+                        {book.publisher && (
+                          <span className="meta-item">Publisher: {book.publisher}</span>
+                        )}
+                        {book.published_year && (
+                          <span className="meta-item">Year: {book.published_year}</span>
+                        )}
                         <span className="meta-item">
                           Copies: {book.available_copies}/{book.total_copies}
                         </span>
